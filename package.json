@@ -1,0 +1,29 @@
+{
+  "name": "botbrokermonitor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DPM97/BotBrokerMonitor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DPM97/BotBrokerMonitor/issues"
+  },
+  "homepage": "https://github.com/DPM97/BotBrokerMonitor#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "cloudscraper": "^4.1.2",
+    "crypto": "^1.0.1",
+    "electron": "^5.0.4",
+    "fs": "0.0.1-security",
+    "moment": "^2.24.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  }
+}
