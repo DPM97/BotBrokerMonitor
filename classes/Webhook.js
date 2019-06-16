@@ -5,12 +5,18 @@ class Webhook {
     constructor(msg) {
         this.price = msg.price;
         this.name = msg.name.toUpperCase();
-        this.renewal = msg.renewal.toString().toUpperCase();
+        this.renewal = msg.renewal;
         this.endpoint = msg.endpoint;
     }
 
     post() {
+        let title;
         let colorCode = '16711680';
+        if (this.renewal === true) {
+            title = `New Cheapest listing for ${this.name} (RENEWAL)`
+        } else {
+            title = `New Cheapest listing for ${this.name} (LIFETIME)`
+        }
     
         request({
             url: config.webhook,
@@ -21,7 +27,7 @@ class Webhook {
             json: {
                 "embeds": [
                     {
-                        "title": `New Cheapest listing for ${this.name} (RENEWAL=${this.renewal})`,
+                        "title": title,
                         "color": colorCode,
                         "timestamp": new Date().toISOString(),
                         "footer": {
@@ -29,7 +35,7 @@ class Webhook {
                             "text": "BotBroker Monitor by Dollon"
                         },
                         "author": {
-                            "name": "BotBroker Montitor",
+                            "name": "BotBroker Monitor",
                             "url": "https://discordapp.com",
                             "icon_url": "https://pbs.twimg.com/profile_images/945882748920594432/Y4f4s73D_400x400.jpg"
                         },

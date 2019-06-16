@@ -1,14 +1,14 @@
 {
-    "delay": 5000,
-    "bots": [
-        "balko",
-        "cyber-aio",
-        "dashe",
-        "ghost-phantom",
-        "ghost-snkrs",
-        "hastey",
-        "project-destroyer",
-        "sneakercopter"
-    ],
+    "delay": 10000,
+    "bots": {
+        "balko": "both",
+        "cyber-aio": "both",
+        "dashe": "both",
+        "ghost-phantom": "both",
+        "ghost-snkrs": "lifetime",
+        "hastey": "renewal",
+        "project-destroyer": "both",
+        "sneakercopter": "both"
+    },
     "webhook": ""
 }

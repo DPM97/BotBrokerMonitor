@@ -19,12 +19,20 @@ async function populateProxies() {
 }
 
 function launch() {
-    for (var i = 0; i < config.bots.length; i++) {
+
+    let botNames = Object.keys(config.bots)
+    let botType = Object.values(config.bots)
+
+    for (var i = 0; i < botNames.length; i++) {
+
         let data = {
             "delay": config.delay,
-            "name": config.bots[i],
+            "name": botNames[i],
+            "type": botType[i],
             "jar": global.jar
         }
+
+
         new Task(data).poll();
     }
 }

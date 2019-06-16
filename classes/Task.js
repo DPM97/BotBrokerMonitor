@@ -12,6 +12,7 @@ class Task {
     constructor(data) {
         this.rate = 0;
         this.name = data.name;
+        this.type = data.type;
         this.price = 0;
         this.renewalPrice = 0;
         this.endpoint = `https://botbroker.io/bots/${data.name}`;
@@ -53,7 +54,7 @@ class Task {
         await this.setProxy(); //await this.rotateProxy() to rotate current proxy (on ban perhaps)
         await this.fetchOrigin();
         let f = setInterval(() => {
-            this.fetchPrice();
+            this.fetchPrice(); //fix fetchorigin
         }, this.delay)
     }
 
@@ -61,7 +62,6 @@ class Task {
         await this.rotateProxy();
 
         if (this.proxy != '') {
-            console.log(this.name, `http://${this.proxy}`)
             this.proxy = `http://${this.proxy}`
         }
 
@@ -72,20 +72,54 @@ class Task {
         };
         let that = this;
         cloudscraper(options).then(function (body) {
-            const $ = cheerio.load(body)
-            let element = $('a[class="btn btn-light font-weight-bold text-left pl-md-4 btn-block"]').text();
-            let num = element.replace(/[^0-9]/g, '');
-            let price = parseInt(num, 10);
-            if (element.indexOf('renewal') > -1) {
-                that.renewalPrice = price
-                console.log(that.name, that.renewalPrice)
-                return;
-            } else {
-                that.price = price;
-                console.log(that.name, that.price)
-                return;
+            switch (that.type) {
+                case "lifetime":
+                    return that.originLifetime(body)
+                case "renewal":
+                    return that.originRenewal(body)
+                case "both":
+                    that.originLifetime(body)
+                    return that.originRenewal(body)
             }
         });
+    }
+
+    async originRenewal(body) {
+        const $ = cheerio.load(body)
+        let renewal = []
+        $('span[class="float-right text-right pull-right"]').each(function () {
+            var href = $(this).parent().text();
+            renewal.push(href);
+        });
+        let lowestAsk = renewal[0].match(/^\d+|\d+\b|\d+(?=\w)/g)[0].toString();
+        return this.purgeOrigin(lowestAsk, false)
+    }
+
+    async originLifetime(body) {
+        const $ = cheerio.load(body)
+        let lifetime = []
+        $('div[class="col-6"]').each(function () {
+            var href = $(this).text();
+            lifetime.push(href);
+        });
+        for (var i = 0; i < lifetime.length; i++) {
+            if (lifetime[i].indexOf('Ask Price') > -1) {
+                let lowestAsk = lifetime[i + 1];
+                return this.purgeOrigin(lowestAsk, true)
+            }
+        }
+    }
+
+    purgeOrigin(lowestAsk, isLifetime) {
+        let num = lowestAsk.replace(/[^0-9]/g, '');
+        let price = parseInt(num, 10);
+        if (isLifetime && price != this.price) {
+            return this.price = price;
+        } else if (!isLifetime && price != this.renewalPrice) {
+            return this.renewalPrice = price
+        } else {
+            return;
+        }
     }
 
     async fetchPrice() {
@@ -102,38 +136,69 @@ class Task {
         };
         let that = this;
         cloudscraper(options).then(function (body) {
-            const $ = cheerio.load(body)
-            let element = $('a[class="btn btn-light font-weight-bold text-left pl-md-4 btn-block"]').text();
-            let num = element.replace(/[^0-9]/g, '');
-            let price = parseInt(num, 10);
-            if (element.indexOf('renewal') > -1) {
-                if (price != that.renewalPrice) {
-                    that.renewalPrice = price
-                    let postData = {
-                        "price": that.renewalPrice,
-                        "name": that.name,
-                        "renewal": true,
-                        "endpoint": that.endpoint
-                    }
-                    that.log(postData, 'post')
-                } else {
-                    return;
-                }
-            } else {
-                if (price != that.price) {
-                    that.price = price;
-                    let postData = {
-                        "price": that.price,
-                        "name": that.name,
-                        "renewal": false,
-                        "endpoint": that.endpoint
-                    }
-                    that.log(postData, 'post')
-                } else {
-                    return;
-                }
+
+            switch (that.type) {
+                case "lifetime":
+                    return that.fetchLifetime(body)
+                case "renewal":
+                    return that.fetchRenewal(body)
+                case "both":
+                    that.fetchLifetime(body)
+                    return that.fetchRenewal(body)
             }
         });
+    }
+
+    async fetchRenewal(body) {
+        const $ = cheerio.load(body)
+        let renewal = []
+        $('span[class="float-right text-right pull-right"]').each(function () {
+            var href = $(this).parent().text();
+            renewal.push(href);
+        });
+        let lowestAsk = renewal[0].match(/^\d+|\d+\b|\d+(?=\w)/g)[0].toString();
+        return this.purgeText(lowestAsk, false)
+    }
+
+    async fetchLifetime(body) {
+        const $ = cheerio.load(body)
+        let lifetime = []
+        $('div[class="col-6"]').each(function () {
+            var href = $(this).text();
+            lifetime.push(href);
+        });
+        for (var i = 0; i < lifetime.length; i++) {
+            if (lifetime[i].indexOf('Ask Price') > -1) {
+                let lowestAsk = lifetime[i + 1];
+                return this.purgeText(lowestAsk, true)
+            }
+        }
+    }
+
+    purgeText(lowestAsk, isLifetime) {
+        let num = lowestAsk.replace(/[^0-9]/g, '');
+        let price = parseInt(num, 10);
+        if (isLifetime && price != this.price) {
+            this.price = price
+            let postData = {
+                "price": this.price,
+                "name": this.name,
+                "renewal": false,
+                "endpoint": this.endpoint
+            }
+            this.log(postData, 'post')
+        } else if (!isLifetime && price != this.renewalPrice) {
+            this.renewalPrice = price
+            let postData = {
+                "price": this.renewalPrice,
+                "name": this.name,
+                "renewal": true,
+                "endpoint": this.endpoint
+            }
+            this.log(postData, 'post')
+        } else {
+            return;
+        }
     }
 
     setProxy() {
