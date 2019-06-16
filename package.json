@@ -20,7 +20,6 @@
     "cheerio": "^1.0.0-rc.3",
     "cloudscraper": "^4.1.2",
     "crypto": "^1.0.1",
-    "electron": "^5.0.4",
     "fs": "0.0.1-security",
     "moment": "^2.24.0",
     "request": "^2.88.0",
