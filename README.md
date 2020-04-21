@@ -24,7 +24,3 @@ NODE INDEX.JS
 ![alt text](https://i.imgur.com/jfE612b.png)
 
 <br>
-
-# CONTACT
-[TWITTER](https://twitter.com/ProxyCity)
-
